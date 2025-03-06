@@ -1,0 +1,64 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+  <meta charset="UTF-8">  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+ 
+  <script src="https://content.jwplatform.com/libraries/KB5zFt7A.js"></script>  
+  <style>  
+    body {  
+      background-color: black; /* Set background color to black */  
+      margin: 0; /* Remove default margin */  
+      display: flex; /* Use flexbox for centering */  
+      flex-direction: column; /* Stack elements vertically */  
+      justify-content: center; /* Center horizontally */  
+      align-items: center; /* Center vertically */  
+      height: 100vh; /* Full viewport height */  
+    }  
+  
+    #video {  
+      width: 100%; /* Full width */  
+      max-width: 800px; /* Maximum width for larger screens */  
+      aspect-ratio: 16 / 9; /* Maintain 16:9 aspect ratio */  
+    }  
+  
+    .telegram-button {  
+      background-color: #0074d9; /* Button background color */  
+      color: #fff; /* Button text color */  
+      border: none; /* Remove border */  
+      padding: 10px 20px; /* Padding for the button */  
+      cursor: pointer; /* Pointer cursor on hover */  
+      margin-top: 20px; /* Space above the button */  
+    }  
+  
+    .telegram-button:hover {  
+      background-color: #005bb5; /* Darker blue on hover */  
+    }  
+  </style>  
+</head>  
+<body>  
+  <div id="video"></div>  
+  <script type="text/javascript">  
+     jwplayer("video").setup({  
+      image: "",  
+      width: "100%",  
+      aspectratio: "16:9",  
+      autostart: false,  
+      primary: "html5",  
+      preload: "auto",  
+      mute: false,  
+      file: "https://cdn-apse1-prod.tsv2.amagi.tv/linear/amg01448-samsungin-dabanggin-samsungin/playlist.m3u8",  
+        
+      // Logo जोड़ने के लिए   
+      logo: {  
+        file: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEigU3sJDrk0-oannsvmgRzPb2QkZBIzZSfErfbX-qRMtn3feWGiQ6ZVwYZjkK3xcaXeH1TOTK50A7nFvoMIOncvTiSxBKkehgCq_Uim4NyClMsBVCgR-MFsXzsVvA1CTT3BO6ABG_2LrWtVhMMiInCxB6qjCwLuCZtxdB97dunp0c_QuXGhRnRyoGvC7AKV/s512/file-BnWHxiw4zNbBZqUS8zyyhD%20%281%29.webp",  // अपना चैनल का लोगो URL डालें  
+        position: "top-right", // टॉप-राइट में दिखेगा  
+        margin: 10, // किनारे से 10px दूर रहेगा  
+        link: "https://t.me/bhaukaaltech" // इस लिंक पर क्लिक करने से यूज़र आपके चैनल पर जाएगा  
+      }  
+    });  
+ </script>  
+</body>  
+</html>  
+  
