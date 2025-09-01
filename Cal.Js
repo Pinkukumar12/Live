@@ -1,4 +1,4 @@
-  <script>
+
      // ---------- Basic helpers ----------
 const display = document.getElementById('display');
 
@@ -203,4 +203,4 @@ display.addEventListener('keydown', function(e){
 
 // start in basic
 showPanel('basic');
-  </script>
+  
