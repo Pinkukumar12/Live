@@ -53,7 +53,7 @@
                     clearInterval(timer);
                     statusText.innerText = "Redirecting...";
                     // REDIRECT TO TOXTOOLS
-                    window.location.href = "https://toxtools.com"; 
+                    window.location.href = "https://lksfy.com/5RnOeFs"; 
                 }
                 timeLeft -= 1;
             }, 1000);
