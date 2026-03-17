@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Ed-Tech Platform</title>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- HLS.js for Smart Player -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    
+    <style>
+        /* === CSS VARIABLES (THEMES) === */
+        :root {
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-main: #333;
+            --text-muted: #666;
+            --primary: #4a90e2;
+            --secondary: #2c3e50;
+            --accent: #ff4757;
+            --success: #2ed573;
+            --border: #e1e8ed;
+            --skeleton: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        }
+        
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #f5f6fa;
+            --text-muted: #a4b0be;
+            --primary: #3742fa;
+            --secondary: #2f3542;
+            --border: #2f3640;
+            --skeleton: linear-gradient(90deg, #222 25%, #333 50%, #222 75%);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: var(--bg-color); color: var(--text-main); transition: 0.3s; padding-bottom: 50px; }
+
+        /* === HEADER & PROGRESS === */
+        header { background: var(--secondary); color: white; padding: 15px 20px; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .header-content { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto; }
+        .progress-container { width: 100%; background: rgba(255,255,255,0.2); height: 6px; margin-top: 10px; border-radius: 5px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--success); width: 0%; transition: 0.5s; }
+
+        /* === TOOLBAR (Search, Sort, View, Theme) === */
+        .toolbar { max-width: 1400px; margin: 20px auto; padding: 0 20px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: space-between; align-items: center; }
+        .search-box { flex: 1; min-width: 250px; position: relative; }
+        .search-box input { width: 100%; padding: 12px 20px 12px 40px; border-radius: 25px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-main); outline: none; font-size: 1rem; }
+        .search-box i { position: absolute; left: 15px; top: 14px; color: var(--text-muted); }
+        .controls { display: flex; gap: 10px; }
+        .btn-icon { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-main); padding: 10px 15px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .btn-icon:hover { background: var(--primary); color: white; }
+        select { padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-main); outline: none; }
+
+        /* === SUBJECT TABS === */
+        .tabs { max-width: 1400px; margin: 0 auto 20px; padding: 0 20px; display: flex; overflow-x: auto; gap: 10px; scrollbar-width: none; }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tab-btn { white-space: nowrap; padding: 8px 20px; border-radius: 20px; border: 1px solid var(--primary); background: transparent; color: var(--primary); cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .tab-btn.active, .tab-btn:hover { background: var(--primary); color: white; }
+
+        /* === GRID & CARDS === */
+        main { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
+        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        
+        /* List View Modifier */
+        .video-grid.list-view { grid-template-columns: 1fr; }
+        .video-grid.list-view .card { flex-direction: row; align-items: center; }
+        .video-grid.list-view .card-icon { margin: 0 20px 0 0; font-size: 2rem; }
+        .video-grid.list-view .card-content { flex: 1; display: flex; justify-content: space-between; align-items: center; }
+        .video-grid.list-view .play-btn { width: auto; padding: 10px 30px; }
+
+        .card { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; position: relative; transition: 0.3s; border: 1px solid var(--border); }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); border-color: var(--primary); }
+        .card-icon { font-size: 3rem; color: var(--primary); margin-bottom: 15px; text-align: center; }
+        .card-title { font-size: 1.05rem; font-weight: 600; margin-bottom: 10px; line-height: 1.4; flex: 1; }
+        .card-meta { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px; display: flex; justify-content: space-between; }
+        
+        .play-btn { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; display: flex; justify-content: center; gap: 8px;}
+        .play-btn:hover { background: #0056b3; }
+        .play-btn.yt { background: #ff0000; }
+        
+        .fav-btn { position: absolute; top: 15px; right: 15px; color: #ccc; font-size: 1.2rem; cursor: pointer; transition: 0.3s; }
+        .fav-btn.active { color: var(--accent); }
+        .badge { position: absolute; top: 15px; left: 15px; background: var(--success); color: white; padding: 2px 8px; font-size: 0.7rem; border-radius: 10px; font-weight: bold; }
+        .progress-tiny { height: 4px; background: #eee; width: 100%; margin-bottom: 10px; border-radius: 2px; }
+        .progress-tiny-fill { height: 100%; background: var(--primary); width: 0%; border-radius: 2px;}
+
+        /* SKELETON LOADER */
+        .skeleton-card { background: var(--card-bg); border-radius: 12px; padding: 20px; height: 200px; display: flex; flex-direction: column; gap: 15px; }
+        .skel-img { height: 60px; width: 60px; border-radius: 50%; margin: 0 auto; background: var(--skeleton); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        .skel-text { height: 20px; border-radius: 4px; background: var(--skeleton); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* === PLAYER MODAL & ADVANCED UI === */
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); z-index: 1000; flex-direction: column; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; padding: 15px 20px; color: white; background: #000; align-items: center; }
+        .close-btn { color: white; font-size: 2rem; cursor: pointer; }
+        
+        .player-container { width: 100%; max-width: 1000px; margin: 0 auto; position: relative; background: #000; }
+        .player-container.theater { max-width: 100%; height: 75vh; }
+        
+        .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; background: #000; overflow: hidden; }
+        .player-container.theater .video-wrapper { padding-bottom: 0; height: 100%; }
+        video, iframe { position: absolute; top:0; left:0; width:100%; height:100%; }
+
+        /* Custom Video Controls overlay */
+        .custom-controls { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 20px 15px 10px; display: flex; flex-direction: column; gap: 10px; opacity: 0; transition: opacity 0.3s; color: white;}
+        .video-wrapper:hover .custom-controls { opacity: 1; }
+        
+        .time-bar { width: 100%; height: 5px; background: rgba(255,255,255,0.3); cursor: pointer; border-radius: 3px; position: relative; }
+        .time-fill { height: 100%; background: var(--accent); width: 0%; border-radius: 3px; pointer-events: none; }
+        
+        .control-btns { display: flex; justify-content: space-between; align-items: center; }
+        .left-controls, .right-controls { display: flex; align-items: center; gap: 15px; }
+        .ctrl-btn { background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
+        .ctrl-btn:hover { color: var(--primary); transform: scale(1.1); }
+        .time-text { font-size: 0.9rem; font-family: monospace; }
+        
+        /* Double Tap Zones */
+        .dt-zone { position: absolute; top: 0; width: 30%; height: 100%; z-index: 10; display: flex; justify-content: center; align-items: center; color: white; font-size: 2rem; opacity: 0; pointer-events: none; transition: 0.3s; background: rgba(255,255,255,0.1); border-radius: 50%; }
+        .dt-left { left: 5%; } .dt-right { right: 5%; }
+
+        /* Settings Menu (Quality/Speed) */
+        .settings-menu { position: absolute; bottom: 50px; right: 10px; background: rgba(20,20,20,0.95); border-radius: 8px; padding: 10px; display: none; min-width: 150px; flex-direction: column; gap: 10px; font-size: 0.9rem; z-index: 20;}
+        .settings-menu select { background: #333; color: white; border: none; padding: 5px; width: 100%; border-radius: 4px;}
+
+        /* AutoPlay overlay */
+        .autoplay-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display: none; flex-direction: column; justify-content: center; align-items: center; color: white; z-index: 50;}
+
+        /* Player Tools & Related */
+        .player-bottom { max-width: 1000px; margin: 20px auto; padding: 0 20px; color: var(--text-main); width: 100%; }
+        .tools-bar { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px;}
+        .tool-btn { padding: 8px 15px; background: var(--card-bg); border: 1px solid var(--primary); color: var(--primary); border-radius: 5px; cursor: pointer; font-weight: bold;}
+        .tool-btn:hover { background: var(--primary); color: white; }
+
+        .timestamps-list { background: var(--card-bg); padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none; border: 1px solid var(--border); }
+        .ts-item { color: var(--primary); cursor: pointer; text-decoration: underline; margin-right: 10px; }
+
+        .related-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;}
+
+        /* Player Choice Dialog */
+        .choice-dialog { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 2000; text-align: center; display: none; width: 90%; max-width: 400px;}
+        .choice-btns { display: flex; gap: 10px; margin-top: 20px; justify-content: center;}
+        .choice-btns button { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white;}
+        .btn-normal { background: var(--secondary); } .btn-smart { background: var(--primary); }
+
+        @media(max-width: 768px) {
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .header-content { flex-direction: column; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <div class="header-content">
+            <h2><i class="fas fa-graduation-cap"></i> Prime Learning</h2>
+            <div>
+                <span id="watched-count">0</span> / <span id="total-count">0</span> Classes Completed
+            </div>
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar" id="main-progress"></div>
+        </div>
+    </header>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="search-input" placeholder="Search for classes, topics, etc...">
+        </div>
+        <div class="controls">
+            <select id="sort-select" onchange="applyFilters()">
+                <option value="oldest">Class 1 to End</option>
+                <option value="newest">Newest First</option>
+            </select>
+            <button class="btn-icon" onclick="toggleView()" title="Grid/List View"><i id="view-icon" class="fas fa-list"></i></button>
+            <button class="btn-icon" onclick="toggleTheme()" title="Dark/Light Mode"><i id="theme-icon" class="fas fa-moon"></i></button>
+        </div>
+    </div>
+
+    <!-- SUBJECT TABS -->
+    <div class="tabs" id="tabs-container">
+        <!-- Injected via JS -->
+    </div>
+
+    <!-- MAIN GRID -->
+    <main>
+        <div class="video-grid" id="video-grid">
+            <!-- Skeletons -->
+            <div class="skeleton-card"><div class="skel-img"></div><div class="skel-text"></div><div class="skel-text" style="width:50%;"></div></div>
+            <div class="skeleton-card"><div class="skel-img"></div><div class="skel-text"></div><div class="skel-text" style="width:50%;"></div></div>
+            <div class="skeleton-card"><div class="skel-img"></div><div class="skel-text"></div><div class="skel-text" style="width:50%;"></div></div>
+            <div class="skeleton-card"><div class="skel-img"></div><div class="skel-text"></div><div class="skel-text" style="width:50%;"></div></div>
+        </div>
+        <div style="text-align: center; margin-top: 30px;">
+            <button id="load-more-btn" class="tool-btn" style="display:none;" onclick="loadMore()">Load More Classes <i class="fas fa-chevron-down"></i></button>
+        </div>
+    </main>
+
+    <!-- PLAYER CHOICE DIALOG -->
+    <div class="choice-dialog" id="choice-dialog">
+        <h3>Choose Video Player</h3>
+        <p style="margin-top:10px; color:var(--text-muted); font-size:0.9rem;">Advanced player consumes less data and provides Speed & Quality controls.</p>
+        <div class="choice-btns">
+            <button class="btn-normal" onclick="confirmPlay(false)">Normal Player</button>
+            <button class="btn-smart" onclick="confirmPlay(true)">Smart Player ⚡</button>
+        </div>
+        <button onclick="document.getElementById('choice-dialog').style.display='none'" style="margin-top:15px; background:none; border:none; color:var(--text-muted); cursor:pointer;">Cancel</button>
+    </div>
+
+    <!-- MEGA VIDEO MODAL -->
+    <div class="modal" id="videoModal">
+        <div class="modal-header">
+            <h3 id="modal-title">Video Title</h3>
+            <i class="fas fa-times close-btn" onclick="closePlayer()"></i>
+        </div>
+        
+        <div class="player-container" id="player-container">
+            <div class="video-wrapper" id="video-wrapper">
+                <!-- Native Video for HLS -->
+                <video id="hls-player" playsinline></video>
+                <!-- Iframe for YouTube -->
+                <iframe id="yt-player" allowfullscreen style="display: none;"></iframe>
+                
+                <!-- Double Tap Zones -->
+                <div class="dt-zone dt-left" id="dt-left"><i class="fas fa-backward"></i> -10s</div>
+                <div class="dt-zone dt-right" id="dt-right">+10s <i class="fas fa-forward"></i></div>
+
+                <!-- Custom Controls (Only visible for HLS) -->
+                <div class="custom-controls" id="custom-controls">
+                    <div class="time-bar" id="time-bar" onclick="seekVideo(event)"><div class="time-fill" id="time-fill"></div></div>
+                    <div class="control-btns">
+                        <div class="left-controls">
+                            <button class="ctrl-btn" onclick="togglePlay()"><i id="play-icon" class="fas fa-play"></i></button>
+                            <button class="ctrl-btn" onclick="skipTime(-10)"><i class="fas fa-undo"></i></button>
+                            <button class="ctrl-btn" onclick="skipTime(10)"><i class="fas fa-redo"></i></button>
+                            <span class="time-text"><span id="current-time">00:00</span> / <span id="duration-time">00:00</span></span>
+                        </div>
+                        <div class="right-controls">
+                            <button class="ctrl-btn" onclick="toggleSettings()"><i class="fas fa-cog"></i></button>
+                            <button class="ctrl-btn" onclick="togglePiP()" title="Picture in Picture"><i class="fas fa-clone"></i></button>
+                            <button class="ctrl-btn" onclick="toggleTheater()" title="Theater Mode"><i class="fas fa-tv"></i></button>
+                            <button class="ctrl-btn" onclick="toggleFullScreen()"><i class="fas fa-expand"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Menu -->
+                <div class="settings-menu" id="settings-menu">
+                    <label style="color:#aaa;">Quality</label>
+                    <select id="quality-selector" onchange="changeQuality(this.value)">
+                        <option value="-1">Auto</option>
+                    </select>
+                    <label style="color:#aaa;">Speed</label>
+                    <select onchange="document.getElementById('hls-player').playbackRate = this.value">
+                        <option value="0.75">0.75x</option>
+                        <option value="1" selected>Normal</option>
+                        <option value="1.25">1.25x</option>
+                        <option value="1.5">1.5x</option>
+                        <option value="2">2.0x</option>
+                    </select>
+                </div>
+
+                <!-- AutoPlay Next Overlay -->
+                <div class="autoplay-overlay" id="autoplay-overlay">
+                    <h2>Up Next...</h2>
+                    <p id="next-title" style="margin: 10px 0; color:#aaa;"></p>
+                    <h1 id="countdown" style="font-size:3rem; margin-bottom:20px;">5</h1>
+                    <div>
+                        <button class="tool-btn" onclick="cancelAutoPlay()">Cancel</button>
+                        <button class="tool-btn" style="background:var(--primary); color:white;" onclick="playNextVideoImmediate()">Play Now</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="player-bottom">
+            <div class="tools-bar">
+                <button class="tool-btn" onclick="saveTimestamp()"><i class="fas fa-bookmark"></i> Save Note Here</button>
+                <button class="tool-btn" onclick="markAsWatched()"><i class="fas fa-check-circle"></i> Mark Completed</button>
+            </div>
+            
+            <div class="timestamps-list" id="timestamps-list">
+                <h4>My Notes/Timestamps:</h4>
+                <div id="ts-container" style="margin-top:10px;"></div>
+            </div>
+
+            <h3 style="margin-top:30px; border-bottom:2px solid var(--primary); display:inline-block;">Related Classes</h3>
+            <div class="related-grid" id="related-grid"></div>
+        </div>
+    </div>
+
+    <script>
+        const JSON_URL = 'https://raw.githubusercontent.com/Pinkukumar12/Pmtuber/main/Video.json';
+        
+        let allVideos = [];
+        let filteredVideos = [];
+        let currentSubject = 'All';
+        let currentPlayingVideo = null;
+        let currentPage = 1;
+        const itemsPerPage = 20;
+
+        // Player Variables
+        let hls = null;
+        let autoPlayTimer = null;
+        let selectedVideoToPlay = null; // Temp hold before modal choice
+
+        // LocalStorage Keys
+        const HISTORY_KEY = 'eduHistory';
+        const FAV_KEY = 'eduFavs';
+        const NOTES_KEY = 'eduNotes';
+
+        // Initialization
+        window.onload = () => {
+            initTheme();
+            fetchData();
+        };
+
+        // === 1. DATA FETCHING & FLATTENING ===
+        async function fetchData() {
+            try {
+                const response = await fetch(JSON_URL);
+                const data = await response.json();
+                
+                // Flatten data and add unique IDs based on subject + id
+                Object.keys(data.subjects).forEach(subject => {
+                    data.subjects[subject].forEach(vid => {
+                        allVideos.push({
+                            ...vid,
+                            subject: subject,
+                            uid: `${subject.replace(/\s+/g, '_')}_${vid.id}`
+                        });
+                    });
+                });
+
+                document.getElementById('total-count').innerText = allVideos.length;
+                setupTabs(Object.keys(data.subjects));
+                applyFilters();
+                updateOverallProgress();
+
+            } catch (e) {
+                console.error(e);
+                document.getElementById('video-grid').innerHTML = '<p style="color:red; text-align:center; grid-column:1/-1;">Failed to load data.</p>';
+            }
+        }
+
+        // === 2. UI SETUP & FILTERS ===
+        function setupTabs(subjects) {
+            const container = document.getElementById('tabs-container');
+            container.innerHTML = `<button class="tab-btn active" onclick="setSubject('All', this)">All</button>
+                                   <button class="tab-btn" onclick="setSubject('Favs', this)"><i class="fas fa-heart"></i> My Favourites</button>`;
+            subjects.forEach(sub => {
+                container.innerHTML += `<button class="tab-btn" onclick="setSubject('${sub}', this)">${sub}</button>`;
+            });
+        }
+
+        function setSubject(sub, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentSubject = sub;
+            currentPage = 1; // Reset pagination
+            applyFilters();
+        }
+
+        // Live Search listener
+        document.getElementById('search-input').addEventListener('input', () => {
+            currentPage = 1;
+            applyFilters();
+        });
+
+        function applyFilters() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const sort = document.getElementById('sort-select').value;
+            const favs = JSON.parse(localStorage.getItem(FAV_KEY) || '[]');
+
+            filteredVideos = allVideos.filter(vid => {
+                const matchSub = currentSubject === 'All' ? true : (currentSubject === 'Favs' ? favs.includes(vid.uid) : vid.subject === currentSubject);
+                const matchSearch = vid.title.toLowerCase().includes(query);
+                return matchSub && matchSearch;
+            });
+
+            if (sort === 'newest') filteredVideos.reverse();
+
+            document.getElementById('video-grid').innerHTML = ''; // Clear
+            renderGrid();
+        }
+
+        // === 3. PAGINATION & RENDERING CARDS ===
+        function renderGrid() {
+            const grid = document.getElementById('video-grid');
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const paginated = filteredVideos.slice(start, end);
+
+            const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '{}');
+            const favs = JSON.parse(localStorage.getItem(FAV_KEY) || '[]');
+
+            paginated.forEach(vid => {
+                const isYt = vid.url.includes('youtube') || vid.url.includes('youtu.be');
+                const isFav = favs.includes(vid.uid);
+                const vidHistory = history[vid.uid] || { time: 0, duration: 1, watched: false };
+                const percent = Math.min(100, (vidHistory.time / vidHistory.duration) * 100);
+                
+                let badgeHTML = '';
+                if(vidHistory.watched) badgeHTML = `<span class="badge">✅ Watched</span>`;
+                else if(percent > 0) badgeHTML = `<span class="badge" style="background:var(--primary)">▶ ${Math.floor(percent)}%</span>`;
+
+                grid.innerHTML += `
+                    <div class="card">
+                        ${badgeHTML}
+                        <i class="fas fa-heart fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav('${vid.uid}', event)"></i>
+                        <div class="card-icon"><i class="${isYt ? 'fab fa-youtube' : 'fas fa-play-circle'}" style="${isYt ? 'color:red;' : ''}"></i></div>
+                        <h3 class="card-title">${vid.title}</h3>
+                        <div class="card-meta"><span>${vid.subject}</span><span>${isYt ? 'YouTube' : 'Server Class'}</span></div>
+                        <div class="progress-tiny"><div class="progress-tiny-fill" style="width:${percent}%"></div></div>
+                        <button class="play-btn ${isYt ? 'yt' : ''}" onclick="initPlay('${vid.uid}')">
+                            <i class="fas fa-play"></i> Watch Now
+                        </button>
+                    </div>
+                `;
+            });
+
+            const loadBtn = document.getElementById('load-more-btn');
+            loadBtn.style.display = end < filteredVideos.length ? 'inline-block' : 'none';
+        }
+
+        function loadMore() {
+            currentPage++;
+            renderGrid();
+        }
+
+        // === 4. LOCAL STORAGE LOGIC ===
+        function toggleFav(uid, e) {
+            e.stopPropagation();
+            let favs = JSON.parse(localStorage.getItem(FAV_KEY) || '[]');
+            if (favs.includes(uid)) favs = favs.filter(id => id !== uid);
+            else favs.push(uid);
+            localStorage.setItem(FAV_KEY, JSON.stringify(favs));
+            applyFilters(); // Re-render to update icon
+        }
+
+        function saveProgress(uid, time, duration) {
+            let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '{}');
+            let watched = history[uid]?.watched || (time / duration > 0.9); // Auto complete if 90% watched
+            history[uid] = { time, duration, watched };
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+            updateOverallProgress();
+        }
+
+        function markAsWatched() {
+            if(!currentPlayingVideo) return;
+            let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '{}');
+            history[currentPlayingVideo.uid] = { ...history[currentPlayingVideo.uid], watched: true };
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+            updateOverallProgress();
+            alert("Class marked as completed! ✅");
+        }
+
+        function updateOverallProgress() {
+            let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '{}');
+            let completedCount = Object.values(history).filter(h => h.watched).length;
+            document.getElementById('watched-count').innerText = completedCount;
+            if(allVideos.length > 0) {
+                let perc = (completedCount / allVideos.length) * 100;
+                document.getElementById('main-progress').style.width = `${perc}%`;
+            }
+        }
+
+        // === 5. MEGA PLAYER LOGIC ===
+        function initPlay(uid) {
+            selectedVideoToPlay = allVideos.find(v => v.uid === uid);
+            const isYt = selectedVideoToPlay.url.includes('youtube');
+            if(isYt) {
+                confirmPlay(false); // Youtube doesn't need smart player choice
+            } else {
+                document.getElementById('choice-dialog').style.display = 'block';
+            }
+        }
+
+        function confirmPlay(isSmart) {
+            document.getElementById('choice-dialog').style.display = 'none';
+            document.getElementById('videoModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            currentPlayingVideo = selectedVideoToPlay;
+            document.getElementById('modal-title').innerText = currentPlayingVideo.title;
+            
+            loadTimestamps();
+            renderRelated();
+
+            const isYt = currentPlayingVideo.url.includes('youtube') || currentPlayingVideo.url.includes('youtu.be');
+            const vPlayer = document.getElementById('hls-player');
+            const ytPlayer = document.getElementById('yt-player');
+            const customCtrl = document.getElementById('custom-controls');
+
+            vPlayer.style.display = 'none';
+            ytPlayer.style.display = 'none';
+            customCtrl.style.display = 'none';
+            document.getElementById('autoplay-overlay').style.display = 'none';
+
+            let resumeTime = JSON.parse(localStorage.getItem(HISTORY_KEY) || '{}')[currentPlayingVideo.uid]?.time || 0;
+
+            if (isYt) {
+                ytPlayer.style.display = 'block';
+                let vidId = currentPlayingVideo.url.split('v=')[1] || currentPlayingVideo.url.split('youtu.be/')[1];
+                if(vidId && vidId.includes('&')) vidId = vidId.split('&')[0];
+                // YouTube handles its own controls
+                ytPlayer.src = `https://www.youtube.com/embed/${vidId}?autoplay=1&start=${Math.floor(resumeTime)}`;
+            } else {
+                vPlayer.style.display = 'block';
+                if(isSmart) {
+                    customCtrl.style.display = 'flex';
+                    vPlayer.removeAttribute('controls'); // hide default
+                    initSmartPlayer(currentPlayingVideo.url, resumeTime);
+                } else {
+                    vPlayer.setAttribute('controls', 'controls');
+                    vPlayer.src = currentPlayingVideo.url;
+                    vPlayer.currentTime = resumeTime;
+                    vPlayer.play();
+                    // Basic time tracking for normal player
+                    vPlayer.ontimeupdate = () => saveProgress(currentPlayingVideo.uid, vPlayer.currentTime, vPlayer.duration);
+                }
+            }
+        }
+
+        // === 6. CUSTOM SMART HLS PLAYER ===
+        const vid = document.getElementById('hls-player');
+        
+        function initSmartPlayer(url, resumeTime) {
+            if (hls) hls.destroy();
+
+            if (Hls.isSupported()) {
+                hls = new Hls();
+                hls.loadSource(url);
+                hls.attachMedia(vid);
+                hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+                    vid.currentTime = resumeTime;
+                    vid.play();
+                    document.getElementById('play-icon').className = 'fas fa-pause';
+                    
+                    // Populate Quality selector
+                    const qSelect = document.getElementById('quality-selector');
+                    qSelect.innerHTML = '<option value="-1">Auto</option>';
+                    data.levels.forEach((level, i) => {
+                        qSelect.innerHTML += `<option value="${i}">${level.height}p</option>`;
+                    });
+                });
+            } else if (vid.canPlayType('application/vnd.apple.mpegurl')) {
+                vid.src = url;
+                vid.currentTime = resumeTime;
+                vid.play();
+            }
+
+            // Sync Controls
+            vid.ontimeupdate = () => {
+                const perc = (vid.currentTime / vid.duration) * 100;
+                document.getElementById('time-fill').style.width = `${perc}%`;
+                document.getElementById('current-time').innerText = formatTime(vid.currentTime);
+                document.getElementById('duration-time').innerText = formatTime(vid.duration);
+                saveProgress(currentPlayingVideo.uid, vid.currentTime, vid.duration);
+            };
+
+            // Auto Play Next Event
+            vid.onended = triggerAutoPlayNext;
+        }
+
+        function togglePlay() {
+            if(vid.paused) { vid.play(); document.getElementById('play-icon').className = 'fas fa-pause'; }
+            else { vid.pause(); document.getElementById('play-icon').className = 'fas fa-play'; }
+        }
+        function skipTime(sec) { vid.currentTime += sec; }
+        function seekVideo(e) {
+            const bar = document.getElementById('time-bar');
+            const rect = bar.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            vid.currentTime = pos * vid.duration;
+        }
+        function changeQuality(val) { if(hls) hls.currentLevel = parseInt(val); }
+        function toggleSettings() { 
+            const menu = document.getElementById('settings-menu');
+            menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+        }
+        function togglePiP() {
+            if (document.pictureInPictureElement) document.exitPictureInPicture();
+            else if (document.pictureInPictureEnabled) vid.requestPictureInPicture();
+        }
+        function toggleTheater() {
+            document.getElementById('player-container').classList.toggle('theater');
+        }
+        function toggleFullScreen() {
+            const wrapper = document.getElementById('video-wrapper');
+            if (!document.fullscreenElement) wrapper.requestFullscreen().catch(err => console.log(err));
+            else document.exitFullscreen();
+        }
+
+        function formatTime(sec) {
+            if(isNaN(sec)) return "00:00";
+            let m = Math.floor(sec / 60); let s = Math.floor(sec % 60);
+            return (m<10?'0':'')+m + ":" + (s<10?'0':'')+s;
+        }
+
+        // Double Tap Logic (Mobile)
+        let lastTap = 0;
+        document.getElementById('dt-left').addEventListener('touchstart', (e) => handleTap(e, -10, 'dt-left'));
+        document.getElementById('dt-right').addEventListener('touchstart', (e) => handleTap(e, 10, 'dt-right'));
+        function handleTap(e, skip, elId) {
+            e.preventDefault();
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTap;
+            if (tapLength < 500 && tapLength > 0) { // Double tap
+                skipTime(skip);
+                const el = document.getElementById(elId);
+                el.style.opacity = 1;
+                setTimeout(() => el.style.opacity = 0, 500);
+            }
+            lastTap = currentTime;
+        }
+
+        // === 7. AUTO PLAY NEXT ===
+        function triggerAutoPlayNext() {
+            const currentIdx = filteredVideos.findIndex(v => v.uid === currentPlayingVideo.uid);
+            if (currentIdx !== -1 && currentIdx < filteredVideos.length - 1) {
+                const nextVid = filteredVideos[currentIdx + 1];
+                document.getElementById('next-title').innerText = nextVid.title;
+                const overlay = document.getElementById('autoplay-overlay');
+                overlay.style.display = 'flex';
+                
+                let count = 5;
+                document.getElementById('countdown').innerText = count;
+                autoPlayTimer = setInterval(() => {
+                    count--;
+                    document.getElementById('countdown').innerText = count;
+                    if(count <= 0) {
+                        clearInterval(autoPlayTimer);
+                        initPlay(nextVid.uid); // auto play
+                    }
+                }, 1000);
+            }
+        }
+        function cancelAutoPlay() {
+            clearInterval(autoPlayTimer);
+            document.getElementById('autoplay-overlay').style.display = 'none';
+        }
+        function playNextVideoImmediate() {
+            clearInterval(autoPlayTimer);
+            const currentIdx = filteredVideos.findIndex(v => v.uid === currentPlayingVideo.uid);
+            initPlay(filteredVideos[currentIdx + 1].uid);
+        }
+
+        // === 8. TIMESTAMPS & RELATED ===
+        function saveTimestamp() {
+            if(!currentPlayingVideo || currentPlayingVideo.url.includes('youtube')) return alert('Notes only available in Smart Player!');
+            const time = vid.currentTime;
+            const note = prompt("Enter note for " + formatTime(time));
+            if(note) {
+                let notes = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}');
+                if(!notes[currentPlayingVideo.uid]) notes[currentPlayingVideo.uid] = [];
+                notes[currentPlayingVideo.uid].push({ time, note });
+                localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+                loadTimestamps();
+            }
+        }
+        function loadTimestamps() {
+            let notes = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}')[currentPlayingVideo.uid] || [];
+            const container = document.getElementById('timestamps-list');
+            const inner = document.getElementById('ts-container');
+            if(notes.length > 0) {
+                container.style.display = 'block';
+                inner.innerHTML = notes.map(n => `<span class="ts-item" onclick="vid.currentTime=${n.time}; vid.play()">⏱ ${formatTime(n.time)} - ${n.note}</span><br>`).join('');
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        function renderRelated() {
+            const relGrid = document.getElementById('related-grid');
+            relGrid.innerHTML = '';
+            const related = allVideos.filter(v => v.subject === currentPlayingVideo.subject && v.uid !== currentPlayingVideo.uid).slice(0, 4);
+            related.forEach(vid => {
+                relGrid.innerHTML += `
+                    <div style="background:#111; border:1px solid #333; padding:10px; border-radius:8px; display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="initPlay('${vid.uid}')">
+                        <i class="fas fa-play-circle" style="color:var(--primary); font-size:1.5rem;"></i>
+                        <div style="font-size:0.85rem;">${vid.title}</div>
+                    </div>
+                `;
+            });
+        }
+
+        // === 9. GLOBAL HELPERS ===
+        function closePlayer() {
+            document.getElementById('videoModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            document.getElementById('yt-player').src = '';
+            vid.pause(); vid.src = '';
+            if (hls) { hls.destroy(); hls = null; }
+            cancelAutoPlay();
+            applyFilters(); // refresh progress bars on grid
+        }
+
+        function toggleView() {
+            const grid = document.getElementById('video-grid');
+            const icon = document.getElementById('view-icon');
+            grid.classList.toggle('list-view');
+            if(grid.classList.contains('list-view')) { icon.className = 'fas fa-th-large'; }
+            else { icon.className = 'fas fa-list'; }
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const icon = document.getElementById('theme-icon');
+            if(body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+                icon.className = 'fas fa-moon';
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                icon.className = 'fas fa-sun';
+            }
+        }
+        function initTheme() {
+            if(localStorage.getItem('theme') === 'dark') {
+                document.body.setAttribute('data-theme', 'dark');
+                document.getElementById('theme-icon').className = 'fas fa-sun';
+            }
+        }
+    </script>
+</body>
+</html>
